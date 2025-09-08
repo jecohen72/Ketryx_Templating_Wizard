@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ketryx Template Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+            background: #f8fafb;
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #1a202c;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: #6ba644;
+            margin-bottom: 8px;
+        }
+        
+        .tagline {
+            color: #64748b;
+            font-size: 14px;
+        }
+        
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+        
+        .code-output {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+            position: relative;
+        }
+        
+        .code-label {
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+        
+        .code-text {
+            color: #6ba644;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            min-height: 60px;
+            background: #f0fdf9;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #a7f3e0;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #6ba644;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .copy-btn:hover {
+            background: #006b63;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .copy-btn.copied {
+            background: #10b981;
+        }
+        
+        .wizard-card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .question {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 24px;
+        }
+        
+        .options {
+            display: grid;
+            gap: 12px;
+        }
+        
+        .option-btn {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 14px 18px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 15px;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .option-btn:hover {
+            border-color: #6ba644;
+            background: #f0fdf9;
+            transform: translateX(2px);
+        }
+        
+        .option-btn.selected {
+            background: #6ba644;
+            color: white;
+            border-color: #6ba644;
+        }
+        
+        .option-icon {
+            font-size: 20px;
+            width: 28px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .input-group {
+            margin-bottom: 18px;
+        }
+        
+        .input-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.2s;
+            background: white;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #6ba644;
+            box-shadow: 0 0 0 3px rgba(0, 133, 124, 0.1);
+        }
+        
+        .radio-group {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .radio-option:hover {
+            border-color: #6ba644;
+            background: #f0fdf9;
+        }
+        
+        .radio-option input[type="radio"] {
+            margin-right: 10px;
+            accent-color: #6ba644;
+        }
+        
+        .radio-option.selected {
+            background: #f0fdf9;
+            border-color: #6ba644;
+        }
+        
+        .hint {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 8px;
+            font-style: normal;
+            line-height: 1.4;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 28px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .nav-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        .nav-btn.back {
+            background: white;
+            color: #475569;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .nav-btn.back:hover:not(:disabled) {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+        }
+        
+        .nav-btn.next {
+            background: #6ba644;
+            color: white;
+            border: 2px solid #6ba644;
+        }
+        
+        .nav-btn.next:hover:not(:disabled) {
+            background: #006b63;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .progress-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            transition: all 0.3s;
+        }
+        
+        .dot.active {
+            background: #6ba644;
+            transform: scale(1.4);
+        }
+        
+        .dot.completed {
+            background: #10b981;
+        }
+
+        .checkbox-group {
+            display: grid;
+            gap: 10px;
+        }
+
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .checkbox-option:hover {
+            border-color: #6ba644;
+            background: #f0fdf9;
+        }
+
+        .checkbox-option input[type="checkbox"] {
+            margin-right: 10px;
+            accent-color: #6ba644;
+        }
+
+        .checkbox-option.selected {
+            background: #f0fdf9;
+            border-color: #6ba644;
+        }
+
+        .complete-message {
+            text-align: center;
+            padding: 32px 20px;
+        }
+
+        .complete-icon {
+            font-size: 56px;
+            margin-bottom: 20px;
+            color: #10b981;
+        }
+
+        .complete-text {
+            color: #475569;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        .complete-text strong {
+            color: #1a202c;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="code-output">
+            <div class="code-label">Generated Template Code</div>
+            <div class="code-text" id="codeOutput"># Start building your template below</div>
+            <button class="copy-btn" onclick="copyCode()">Copy</button>
+        </div>
+
+        <div class="wizard-card">
+            <div class="progress-dots" id="progressDots"></div>
+            <div class="question" id="questionTitle">Loading...</div>
+            <div id="questionContent">
+                <!-- Dynamic content -->
+            </div>
+            <div class="navigation">
+                <button class="nav-btn back" id="backBtn" onclick="goBack()" disabled>← Back</button>
+                <button class="nav-btn next" id="nextBtn" onclick="goNext()" disabled>Next →</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Comprehensive decision tree with fixed 'done' references
+        const questions = {
+            start: {
+                title: "What do you want to create?",
+                type: "options",
+                options: [
+                    { id: 'word', label: 'Word document template', icon: '📄', next: 'content-type' },
+                    { id: 'excel', label: 'Excel spreadsheet template', icon: '📊', next: 'content-type' }
+                ]
+            },
+            'content-type': {
+                title: "What content do you need?",
+                type: "options",
+                options: [
+                    { id: 'items', label: 'Project items (requirements, tests, etc.)', icon: '📋', next: 'item-select' },
+                    { id: 'project-info', label: 'Project information', icon: '🏢', next: 'project-info-type' },
+                    { id: 'traceability', label: 'Traceability matrix', icon: '🔗', next: 'trace-type' },
+                    { id: 'documents', label: 'Include other documents', icon: '📁', next: 'doc-type' },
+                    { id: 'summaries', label: 'AI-generated summaries', icon: '🤖', next: 'summary-items' }
+                ]
+            },
+            'item-select': {
+                title: "Which items do you want to include?",
+                type: "options",
+                options: [
+                    { id: 'all', label: 'All items', icon: '⭐', next: 'item-display' },
+                    { id: 'requirements', label: 'Requirements only', icon: '📝', next: 'item-display' },
+                    { id: 'tests', label: 'Test Cases only', icon: '🧪', next: 'item-display' },
+                    { id: 'risks', label: 'Risks only', icon: '⚠️', next: 'item-display' },
+                    { id: 'anomalies', label: 'Anomalies only', icon: '🐛', next: 'item-display' },
+                    { id: 'mixed', label: 'Multiple item types', icon: '🎯', next: 'item-types-multi' },
+                    { id: 'custom', label: 'Custom filter', icon: '⚙️', next: 'custom-filter-builder' }
+                ]
+            },
+            'item-types-multi': {
+                title: "Select the item types you want:",
+                type: "checkbox",
+                options: [
+                    { id: 'RQ', label: 'Requirements' },
+                    { id: 'TC', label: 'Test Cases' },
+                    { id: 'RISK', label: 'Risks' },
+                    { id: 'AN', label: 'Anomalies' },
+                    { id: 'SW', label: 'Software Items' },
+                    { id: 'CR', label: 'Change Requests' },
+                    { id: 'CAPA', label: 'CAPAs' }
+                ],
+                next: 'item-display'
+            },
+            'custom-filter-builder': {
+                title: "What do you want to filter by?",
+                type: "options",
+                options: [
+                    { id: 'status', label: 'Item status', icon: '📊', next: 'filter-status' },
+                    { id: 'assignee', label: 'Assigned to someone', icon: '👤', next: 'filter-assignee' },
+                    { id: 'field', label: 'Field value', icon: '📝', next: 'filter-field' },
+                    { id: 'relation', label: 'Related to other items', icon: '🔗', next: 'filter-relation' },
+                    { id: 'risk-control', label: 'Risk controls only', icon: '🛡️', next: 'item-display', value: 'RC' },
+                    { id: 'manual', label: 'Write KQL manually', icon: '💻', next: 'filter-manual' }
+                ]
+            },
+            'filter-status': {
+                title: "Which status?",
+                type: "radio",
+                options: [
+                    { id: 'open', label: 'Open items', value: 'status:Open' },
+                    { id: 'in-progress', label: 'In Progress', value: 'status:"In Progress"' },
+                    { id: 'closed', label: 'Closed items', value: 'status:Closed' },
+                    { id: 'resolved', label: 'Resolved items', value: 'status:Resolved' },
+                    { id: 'controlled', label: 'Controlled items', value: 'is:controlled' },
+                    { id: 'unresolved', label: 'Unresolved items', value: 'is:unresolved' }
+                ],
+                next: 'item-display'
+            },
+            'filter-assignee': {
+                title: "Who is it assigned to?",
+                type: "input",
+                inputType: "text",
+                label: "Enter name or email",
+                placeholder: "John Doe or john@example.com",
+                hint: "Use 'me' for items assigned to you",
+                transform: (value) => `assignee:"${value}"`,
+                next: 'item-display'
+            },
+            'filter-field': {
+                title: "Filter by field value",
+                type: "multi-input",
+                inputs: [
+                    { id: 'field', label: 'Field name', placeholder: 'e.g., Requirement type' },
+                    { id: 'value', label: 'Field value', placeholder: 'e.g., Use case' }
+                ],
+                transform: (values) => `"${values.field}":"${values.value}"`,
+                next: 'item-display'
+            },
+            'filter-relation': {
+                title: "What relationship are you looking for?",
+                type: "options",
+                options: [
+                    { id: 'tests', label: 'Items that test something', icon: '🧪', next: 'relation-target', relation: 'tests' },
+                    { id: 'tested-by', label: 'Items tested by something', icon: '✅', next: 'relation-target', relation: '"is tested by"' },
+                    { id: 'fulfills', label: 'Items that fulfill requirements', icon: '✔️', next: 'relation-target', relation: 'fulfills' },
+                    { id: 'parent', label: 'Items with parent/child', icon: '🌳', next: 'relation-parent' },
+                    { id: 'risk-controlled', label: 'Risk controlled items', icon: '🛡️', next: 'relation-target', relation: '"is risk-controlled by"' }
+                ]
+            },
+            'relation-parent': {
+                title: "Parent or child relationship?",
+                type: "radio",
+                options: [
+                    { id: 'has-parent', label: 'Items with a parent', value: '"has parent":*' },
+                    { id: 'has-child', label: 'Items with children', value: '"has child":*' },
+                    { id: 'specific-parent', label: 'Children of specific item', value: 'parent-id' }
+                ],
+                next: 'relation-parent-id'
+            },
+            'relation-parent-id': {
+                title: "Enter the parent item ID:",
+                type: "input",
+                conditional: (answers) => answers['relation-parent'] === 'specific-parent',
+                inputType: "text",
+                label: "Parent item ID",
+                placeholder: "e.g., SAMD-1",
+                transform: (value) => `"has parent":${value}`,
+                next: 'item-display'
+            },
+            'relation-target': {
+                title: "Related to which items?",
+                type: "input",
+                inputType: "text",
+                label: "Target items (optional)",
+                placeholder: "e.g., RQ or SAMD-1 or leave empty for any",
+                hint: "Leave empty to match any related items",
+                transform: (value, context) => {
+                    const relation = context.relation;
+                    return value ? `${relation}:${value}` : `${relation}:*`;
+                },
+                next: 'item-display'
+            },
+            'filter-manual': {
+                title: "Enter your KQL query:",
+                type: "input",
+                inputType: "text",
+                label: "KQL Query",
+                placeholder: "e.g., type:RQ AND status:Approved",
+                hint: "See Ketryx docs for KQL syntax",
+                next: 'item-display'
+            },
+            'item-display': {
+                title: "How should items be displayed?",
+                type: "options",
+                options: [
+                    { id: 'list', label: 'Simple bullet list', icon: '•', next: 'item-process' },
+                    { id: 'table', label: 'Table format', icon: '📊', next: 'table-columns' },
+                    { id: 'detailed', label: 'Full details', icon: '📄', next: 'item-process' },
+                    { id: 'grouped', label: 'Grouped by field', icon: '📂', next: 'group-field' }
+                ]
+            },
+            'table-columns': {
+                title: "Which columns do you want?",
+                type: "checkbox",
+                options: [
+                    { id: 'id', label: 'ID', default: true },
+                    { id: 'title', label: 'Title', default: true },
+                    { id: 'typeName', label: 'Type' },
+                    { id: 'status', label: 'Status' },
+                    { id: 'assignee', label: 'Assignee' },
+                    { id: 'createdAt', label: 'Created Date' }
+                ],
+                next: 'item-process'
+            },
+            'group-field': {
+                title: "Group items by:",
+                type: "radio",
+                options: [
+                    { id: 'type', label: 'Item type', value: 'typeName' },
+                    { id: 'status', label: 'Status', value: 'status' },
+                    { id: 'assignee', label: 'Assignee', value: 'assignee' },
+                    { id: 'custom', label: 'Custom field', value: 'custom' }
+                ],
+                next: 'group-custom-field'
+            },
+            'group-custom-field': {
+                title: "Enter field name to group by:",
+                type: "input",
+                conditional: (answers) => answers['group-field'] !== 'custom',
+                skip: true,
+                inputType: "text",
+                label: "Field name",
+                placeholder: "e.g., Priority or fieldValue.Requirement_type",
+                hint: "Use fieldValue.FieldName for custom fields",
+                next: 'item-process'
+            },
+            'item-process': {
+                title: "Any additional processing?",
+                type: "options",
+                options: [
+                    { id: 'none', label: 'No, I\'m done', icon: '✅', next: 'complete' },
+                    { id: 'sort', label: 'Sort the items', icon: '🔤', next: 'sort-field' },
+                    { id: 'filter', label: 'Filter results', icon: '🔍', next: 'where-filter' },
+                    { id: 'version', label: 'Specific version', icon: '🏷️', next: 'version-select' },
+                    { id: 'conditional', label: 'Show conditionally', icon: '❓', next: 'conditional-type' }
+                ]
+            },
+            'sort-field': {
+                title: "Sort by which field?",
+                type: "radio",
+                options: [
+                    { id: 'id', label: 'ID', value: 'id' },
+                    { id: 'title', label: 'Title', value: 'title' },
+                    { id: 'createdAt', label: 'Created date', value: 'createdAt' },
+                    { id: 'status', label: 'Status', value: 'status' },
+                    { id: 'custom', label: 'Custom field', value: 'custom' }
+                ],
+                next: 'sort-custom'
+            },
+            'sort-custom': {
+                title: "Enter field to sort by:",
+                type: "input",
+                conditional: (answers) => answers['sort-field'] !== 'custom',
+                skip: true,
+                inputType: "text",
+                label: "Field name",
+                placeholder: "e.g., priority or fieldValue.Priority",
+                next: 'complete'
+            },
+            'where-filter': {
+                title: "What do you want to filter?",
+                type: "options",
+                options: [
+                    { id: 'status-filter', label: 'By status', icon: '📊', next: 'where-status' },
+                    { id: 'field-filter', label: 'By field value', icon: '📝', next: 'where-field' },
+                    { id: 'custom-filter', label: 'Custom expression', icon: '💻', next: 'where-custom' }
+                ]
+            },
+            'where-status': {
+                title: "Keep items where status is:",
+                type: "radio",
+                options: [
+                    { id: 'approved', label: 'Approved', value: 'status == "Approved"' },
+                    { id: 'not-draft', label: 'Not Draft', value: 'status != "Draft"' },
+                    { id: 'open-progress', label: 'Open or In Progress', value: 'status == "Open" || status == "In Progress"' }
+                ],
+                next: 'complete'
+            },
+            'where-field': {
+                title: "Filter by field comparison:",
+                type: "multi-input",
+                inputs: [
+                    { id: 'field', label: 'Field name', placeholder: 'e.g., priority' },
+                    { id: 'operator', label: 'Comparison', type: 'select', options: ['==', '!=', '>', '<', '>=', '<='] },
+                    { id: 'value', label: 'Value', placeholder: 'e.g., "High" or 5' }
+                ],
+                transform: (values) => `${values.field} ${values.operator} ${values.value}`,
+                next: 'complete'
+            },
+            'where-custom': {
+                title: "Enter filter expression:",
+                type: "input",
+                inputType: "text",
+                label: "Filter expression",
+                placeholder: 'e.g., status == "Approved" && priority > 3',
+                hint: "Use && for AND, || for OR",
+                next: 'complete'
+            },
+            'version-select': {
+                title: "Which version?",
+                type: "input",
+                inputType: "text",
+                label: "Version name",
+                placeholder: 'e.g., "Version 1.0"',
+                hint: 'Use quotes for version names, or comma-separated for multiple',
+                next: 'complete'
+            },
+            'conditional-type': {
+                title: "When should this content show?",
+                type: "options",
+                options: [
+                    { id: 'if-items', label: 'Only if items exist', icon: '📋', next: 'complete', value: 'items' },
+                    { id: 'if-variable', label: 'If variable exists', icon: '🔍', next: 'conditional-var' }
+                ]
+            },
+            'conditional-var': {
+                title: "Which variable must exist?",
+                type: "input",
+                inputType: "text",
+                label: "Variable name",
+                placeholder: "e.g., approvals",
+                hint: "Content shows only if this variable has a value",
+                next: 'complete'
+            },
+            'project-info-type': {
+                title: "What project information?",
+                type: "checkbox",
+                options: [
+                    { id: 'name', label: 'Project name' },
+                    { id: 'version', label: 'Version' },
+                    { id: 'org', label: 'Organization' },
+                    { id: 'date', label: 'Generation date' },
+                    { id: 'milestones', label: 'Milestones' },
+                    { id: 'dependencies', label: 'Dependencies' },
+                    { id: 'vulnerabilities', label: 'Vulnerabilities' },
+                    { id: 'approvals', label: 'Approvals' }
+                ],
+                next: 'complete'
+            },
+            'trace-type': {
+                title: "Traceability configuration:",
+                type: "options",
+                options: [
+                    { id: 'standard', label: 'Standard RTM', icon: '📊', next: 'complete' },
+                    { id: 'custom', label: 'Custom configuration', icon: '⚙️', next: 'trace-config' }
+                ]
+            },
+            'trace-config': {
+                title: "Configuration name:",
+                type: "input",
+                inputType: "text",
+                label: "Config name",
+                placeholder: "e.g., extraConfigName",
+                hint: "As defined in advanced settings",
+                next: 'complete'
+            },
+            'doc-type': {
+                title: "Which document to include?",
+                type: "options",
+                options: [
+                    { id: 'edms', label: 'EDMS document', icon: '📄', next: 'doc-path' },
+                    { id: 'release', label: 'Release document', icon: '🚀', next: 'doc-release' },
+                    { id: 'milestone', label: 'Milestone document', icon: '🎯', next: 'doc-milestone' }
+                ]
+            },
+            'doc-path': {
+                title: "Document path:",
+                type: "input",
+                inputType: "text",
+                label: "EDMS path",
+                placeholder: "e.g., Templates/My Document",
+                next: 'complete'
+            },
+            'doc-release': {
+                title: "Release document name:",
+                type: "input",
+                inputType: "text",
+                label: "Document name",
+                placeholder: "e.g., Test Plan",
+                next: 'complete'
+            },
+            'doc-milestone': {
+                title: "Milestone document:",
+                type: "input",
+                inputType: "text",
+                label: "Milestone / Document",
+                placeholder: "e.g., Milestone 1 / Test Plan",
+                next: 'complete'
+            },
+            'summary-items': {
+                title: "What should be summarized?",
+                type: "options",
+                options: [
+                    { id: 'all', label: 'All items', icon: '📚', next: 'summary-config' },
+                    { id: 'new', label: 'New/changed items', icon: '🆕', next: 'summary-config' },
+                    { id: 'custom', label: 'Custom selection', icon: '🎯', next: 'summary-query' }
+                ]
+            },
+            'summary-query': {
+                title: "Which items to summarize?",
+                type: "input",
+                inputType: "text",
+                label: "KQL query",
+                placeholder: "e.g., type:RQ or (RQ and diff:new)",
+                next: 'summary-config'
+            },
+            'summary-config': {
+                title: "Summary settings:",
+                type: "multi-input",
+                inputs: [
+                    { id: 'words', label: 'Target word count (optional)', placeholder: '200', type: 'number' },
+                    { id: 'instructions', label: 'Instructions (optional)', placeholder: 'Summarize as bullet points' }
+                ],
+                next: 'complete'
+            },
+            'complete': {
+                type: 'complete'
+            }
+        };
+
+        // State management
+        let currentStep = 'start';
+        let answers = {};
+        let history = [];
+
+        function initProgressDots() {
+            const dots = document.getElementById('progressDots');
+            const maxSteps = 6;
+            for (let i = 0; i < maxSteps; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                dots.appendChild(dot);
+            }
+        }
+
+        function updateProgressDots() {
+            const dots = document.querySelectorAll('.dot');
+            const currentIndex = Math.min(history.length, dots.length - 1);
+            
+            dots.forEach((dot, index) => {
+                dot.classList.remove('active', 'completed');
+                if (index < currentIndex) {
+                    dot.classList.add('completed');
+                } else if (index === currentIndex) {
+                    dot.classList.add('active');
+                }
+            });
+        }
+
+        function renderQuestion(stepId) {
+            const step = questions[stepId];
+            if (!step) {
+                console.error('Step not found:', stepId);
+                return;
+            }
+
+            // Check conditional
+            if (step.conditional && !step.conditional(answers)) {
+                if (step.skip) {
+                    goToNext(step.next);
+                    return;
+                }
+            }
+
+            const titleEl = document.getElementById('questionTitle');
+            const contentEl = document.getElementById('questionContent');
+            const nextBtn = document.getElementById('nextBtn');
+            const backBtn = document.getElementById('backBtn');
+
+            if (stepId === 'complete' || step.type === 'complete') {
+                titleEl.textContent = 'Template Complete!';
+                contentEl.innerHTML = `
+                    <div class="complete-message">
+                        <div class="complete-icon">✅</div>
+                        <div class="complete-text">
+                            <strong>Your template is ready!</strong><br>
+                            Copy the code above and paste it into your Word or Excel document.
+                        </div>
+                    </div>
+                `;
+                nextBtn.style.display = 'none';
+                generateFinalCode();
+                return;
+            }
+
+            titleEl.textContent = step.title;
+
+            // Render content based on type
+            switch (step.type) {
+                case 'options':
+                    renderOptions(step, contentEl);
+                    break;
+                case 'input':
+                    renderInput(step, contentEl);
+                    break;
+                case 'multi-input':
+                    renderMultiInput(step, contentEl);
+                    break;
+                case 'radio':
+                    renderRadio(step, contentEl);
+                    break;
+                case 'checkbox':
+                    renderCheckbox(step, contentEl);
+                    break;
+            }
+
+            // Update navigation
+            backBtn.disabled = history.length === 0;
+            nextBtn.disabled = true;
+            nextBtn.textContent = 'Next →';
+            
+            updateProgressDots();
+        }
+
+        function renderOptions(step, container) {
+            const optionsHtml = step.options.map(opt => `
+                <button class="option-btn" onclick="selectOption('${opt.id}', '${opt.next || step.next}', ${opt.value ? `'${opt.value}'` : 'null'}, ${opt.relation ? `'${opt.relation}'` : 'null'})">
+                    <span class="option-icon">${opt.icon || ''}</span>
+                    <span>${opt.label}</span>
+                </button>
+            `).join('');
+            
+            container.innerHTML = `<div class="options">${optionsHtml}</div>`;
+        }
+
+        function renderInput(step, container) {
+            container.innerHTML = `
+                <div class="input-group">
+                    <label class="input-label">${step.label || 'Enter value:'}</label>
+                    <input type="${step.inputType || 'text'}" 
+                           class="input-field" 
+                           id="stepInput"
+                           placeholder="${step.placeholder || ''}"
+                           onkeyup="handleInput()">
+                    ${step.hint ? `<div class="hint">${step.hint}</div>` : ''}
+                </div>
+            `;
+        }
+
+        function renderMultiInput(step, container) {
+            const inputsHtml = step.inputs.map(input => {
+                if (input.type === 'select') {
+                    const optionsHtml = input.options.map(opt => 
+                        `<option value="${opt}">${opt}</option>`
+                    ).join('');
+                    return `
+                        <div class="input-group">
+                            <label class="input-label">${input.label}:</label>
+                            <select class="input-field" id="input_${input.id}" onchange="handleInput()">
+                                ${optionsHtml}
+                            </select>
+                        </div>
+                    `;
+                }
+                return `
+                    <div class="input-group">
+                        <label class="input-label">${input.label}:</label>
+                        <input type="${input.type || 'text'}" 
+                               class="input-field" 
+                               id="input_${input.id}"
+                               placeholder="${input.placeholder || ''}"
+                               onkeyup="handleInput()">
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = inputsHtml;
+        }
+
+        function renderRadio(step, container) {
+            const optionsHtml = step.options.map((opt, idx) => `
+                <label class="radio-option">
+                    <input type="radio" name="stepRadio" value="${opt.value || opt.id}" 
+                           onchange="handleRadio('${opt.value || opt.id}')"
+                           ${idx === 0 ? 'checked' : ''}>
+                    <span>${opt.label}</span>
+                </label>
+            `).join('');
+            
+            container.innerHTML = `<div class="radio-group">${optionsHtml}</div>`;
+            
+            // Auto-select first option
+            if (step.options.length > 0) {
+                handleRadio(step.options[0].value || step.options[0].id);
+            }
+        }
+
+        function renderCheckbox(step, container) {
+            const optionsHtml = step.options.map(opt => `
+                <label class="checkbox-option">
+                    <input type="checkbox" value="${opt.id}" 
+                           onchange="handleCheckbox()"
+                           ${opt.default ? 'checked' : ''}>
+                    <span>${opt.label}</span>
+                </label>
+            `).join('');
+            
+            container.innerHTML = `<div class="checkbox-group">${optionsHtml}</div>`;
+            handleCheckbox();
+        }
+
+        function selectOption(value, next, customValue, relation) {
+            answers[currentStep] = customValue || value;
+            if (relation) {
+                answers[currentStep + '_relation'] = relation;
+            }
+            answers[currentStep + '_next'] = next;
+            
+            document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.closest('.option-btn').classList.add('selected');
+            
+            document.getElementById('nextBtn').disabled = false;
+            generateCode();
+        }
+
+        function handleInput() {
+            const step = questions[currentStep];
+            if (step.type === 'multi-input') {
+                const values = {};
+                let hasValue = false;
+                step.inputs.forEach(input => {
+                    const el = document.getElementById(`input_${input.id}`);
+                    if (el && el.value.trim()) {
+                        values[input.id] = el.value;
+                        hasValue = true;
+                    }
+                });
+                answers[currentStep] = values;
+                document.getElementById('nextBtn').disabled = !hasValue;
+            } else {
+                const input = document.getElementById('stepInput');
+                answers[currentStep] = input.value;
+                document.getElementById('nextBtn').disabled = !input.value.trim();
+            }
+            generateCode();
+        }
+
+        function handleRadio(value) {
+            answers[currentStep] = value;
+            document.getElementById('nextBtn').disabled = false;
+            generateCode();
+        }
+
+        function handleCheckbox() {
+            const checked = [];
+            document.querySelectorAll('.checkbox-group input:checked').forEach(cb => {
+                checked.push(cb.value);
+            });
+            answers[currentStep] = checked;
+            document.getElementById('nextBtn').disabled = checked.length === 0;
+            generateCode();
+        }
+
+        function goNext() {
+            history.push(currentStep);
+            const step = questions[currentStep];
+            const next = answers[currentStep + '_next'] || step.next;
+            goToNext(next);
+        }
+
+        function goToNext(next) {
+            currentStep = next;
+            renderQuestion(currentStep);
+        }
+
+        function goBack() {
+            if (history.length > 0) {
+                currentStep = history.pop();
+                renderQuestion(currentStep);
+            }
+        }
+
+        function generateCode() {
+            let code = '';
+            
+            // Main content generation
+            if (answers['content-type'] === 'items') {
+                // Build KQL query
+                let query = '';
+                
+                if (answers['item-select'] === 'all') {
+                    query = '*';
+                } else if (answers['item-select'] === 'requirements') {
+                    query = 'type:RQ';
+                } else if (answers['item-select'] === 'tests') {
+                    query = 'type:TC';
+                } else if (answers['item-select'] === 'risks') {
+                    query = 'type:RISK';
+                } else if (answers['item-select'] === 'anomalies') {
+                    query = 'type:AN';
+                } else if (answers['item-select'] === 'mixed' && answers['item-types-multi']) {
+                    query = answers['item-types-multi'].join(' ');
+                } else if (answers['item-select'] === 'custom') {
+                    // Handle custom filter path
+                    if (answers['custom-filter-builder'] === 'risk-control') {
+                        query = 'RC';
+                    } else if (answers['filter-status']) {
+                        query = answers['filter-status'];
+                    } else if (answers['filter-assignee']) {
+                        const step = questions['filter-assignee'];
+                        query = step.transform(answers['filter-assignee']);
+                    } else if (answers['filter-field']) {
+                        const step = questions['filter-field'];
+                        query = step.transform(answers['filter-field']);
+                    } else if (answers['relation-parent']) {
+                        if (answers['relation-parent'] === 'parent-id' && answers['relation-parent-id']) {
+                            const step = questions['relation-parent-id'];
+                            query = step.transform(answers['relation-parent-id']);
+                        } else {
+                            query = answers['relation-parent'];
+                        }
+                    } else if (answers['relation-target']) {
+                        const step = questions['relation-target'];
+                        const relation = answers['filter-relation_relation'];
+                        query = step.transform(answers['relation-target'], { relation });
+                    } else if (answers['filter-manual']) {
+                        query = answers['filter-manual'];
+                    }
+                }
+                
+                // Add version if specified
+                if (answers['version-select']) {
+                    code += `{$KQL @version:${answers['version-select']} items = ${query}}\n\n`;
+                } else {
+                    code += `{$KQL items = ${query}}\n\n`;
+                }
+                
+                // Add where filter
+                let itemsVar = 'items';
+                if (answers['where-filter']) {
+                    let whereClause = '';
+                    if (answers['where-status']) {
+                        whereClause = answers['where-status'];
+                    } else if (answers['where-field']) {
+                        const step = questions['where-field'];
+                        whereClause = step.transform(answers['where-field']);
+                    } else if (answers['where-custom']) {
+                        whereClause = answers['where-custom'];
+                    }
+                    
+                    if (whereClause) {
+                        code += `{$SET filtered = ${itemsVar} | where:'${whereClause}'}\n`;
+                        itemsVar = 'filtered';
+                    }
+                }
+                
+                // Add sorting
+                if (answers['sort-field']) {
+                    const sortField = answers['sort-field'] === 'custom' ? 
+                        (answers['sort-custom'] || 'id') : answers['sort-field'];
+                    code += `{$SET sorted = ${itemsVar} | sort:'${sortField}'}\n`;
+                    itemsVar = 'sorted';
+                }
+                
+                // Display format
+                const display = answers['item-display'];
+                if (display === 'list') {
+                    code += `{#${itemsVar}}\n• {title}\n{/}`;
+                } else if (display === 'table') {
+                    const columns = answers['table-columns'] || ['id', 'title'];
+                    const headers = columns.map(col => {
+                        const labels = { id: 'ID', title: 'Title', typeName: 'Type', 
+                                       status: 'Status', assignee: 'Assignee', createdAt: 'Created' };
+                        return labels[col] || col;
+                    }).join('\t');
+                    const values = columns.map(col => `{${col}}`).join('\t');
+                    code += `${headers}\n{#${itemsVar}}${values}\t{/}`;
+                } else if (display === 'detailed') {
+                    code += `{#${itemsVar}}\n## {title}\n**ID:** {id}\n**Type:** {typeName}\n**Status:** {status}\n\n{~~ . | itemContent}\n\n{/}`;
+                } else if (display === 'grouped') {
+                    const groupField = answers['group-field'] === 'custom' ? 
+                        (answers['group-custom-field'] || 'typeName') : answers['group-field'];
+                    code += `{#${itemsVar} | group:'${groupField}'}\n## {groupKey}\n{#groupItems}\n• {title}\n{/}\n\n{/}`;
+                }
+                
+                // Conditional wrapper
+                if (answers['conditional-type']) {
+                    const condition = answers['conditional-type'] === 'if-items' ? 
+                        'items' : (answers['conditional-var'] || 'items');
+                    code = `{#${condition}}\n${code}\n{/${condition}}\n\n{#EMPTY}\nNo items found.\n{/EMPTY}`;
+                }
+                
+            } else if (answers['content-type'] === 'project-info') {
+                const info = answers['project-info-type'] || [];
+                if (info.includes('name')) code += '**Project:** {project.name}\n';
+                if (info.includes('version')) code += '**Version:** {version.name}\n';
+                if (info.includes('org')) code += '**Organization:** {organization.name}\n';
+                if (info.includes('date')) code += '**Generated:** {document.date | datetime}\n';
+                if (info.includes('milestones')) {
+                    code += '\n## Milestones\n{#milestones}\n• {name} - {createdAt | datetime}\n{/}\n';
+                }
+                if (info.includes('dependencies')) {
+                    code += '\n## Dependencies\n{#dependencies}\n• {name} ({type})\n{/}\n';
+                }
+                if (info.includes('vulnerabilities')) {
+                    code += '\n## Vulnerabilities\n{#vulnerabilities}\n• {info.summary} - Severity: {info.currentSeverity.level}\n{/}\n';
+                }
+                if (info.includes('approvals')) {
+                    code += '\n## Approvals\n{#approvals}\n• {user.name} - {status}\n{/}\n';
+                }
+                
+            } else if (answers['content-type'] === 'traceability') {
+                if (answers['trace-type'] === 'standard') {
+                    code = '{$TRACE rtm}\n## Traceability Matrix\n{#rtm.rows}\n{columns.req.itemRecord.docId}\t{columns.test.testStatus.title}\n{/}';
+                } else {
+                    const config = answers['trace-config'] || 'extraConfigName';
+                    code = `{$TRACE rtm: ${config}}\n## Traceability Matrix\n{#rtm.rows}\n{columns.req.itemRecord.docId}\t{columns.test.testStatus.title}\n{/}`;
+                }
+                
+            } else if (answers['content-type'] === 'documents') {
+                if (answers['doc-type'] === 'edms') {
+                    const path = answers['doc-path'] || 'Path/To/Document';
+                    code = `{:include $DOC ${path}}`;
+                } else if (answers['doc-type'] === 'release') {
+                    const doc = answers['doc-release'] || 'Document Name';
+                    code = `{:include $RELEASEDOC ${doc}}`;
+                } else if (answers['doc-type'] === 'milestone') {
+                    const doc = answers['doc-milestone'] || 'Milestone / Document';
+                    code = `{:include $RELEASEDOC ${doc}}`;
+                }
+                
+            } else if (answers['content-type'] === 'summaries') {
+                let query = '*';
+                if (answers['summary-items'] === 'new') {
+                    query = 'diff:(new,changed)';
+                } else if (answers['summary-items'] === 'custom') {
+                    query = answers['summary-query'] || '*';
+                }
+                
+                code += `{@$KQL items = ${query}}\n`;
+                
+                let config = 'itemRecords:items';
+                if (answers['summary-config']) {
+                    if (answers['summary-config'].words) {
+                        config += ` totalWordTarget:${answers['summary-config'].words}`;
+                    }
+                    if (answers['summary-config'].instructions) {
+                        config += ` instructions:"${answers['summary-config'].instructions}"`;
+                    }
+                }
+                
+                code += `{@$SUMMARIZE summary = ${config}}\n{~~ summary}`;
+            }
+            
+            document.getElementById('codeOutput').textContent = code || '# Start building your template below';
+        }
+
+        function generateFinalCode() {
+            generateCode();
+        }
+
+        function copyCode() {
+            const code = document.getElementById('codeOutput').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.classList.add('copied');
+                btn.textContent = 'Copied!';
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+
+        // Initialize
+        initProgressDots();
+        renderQuestion('start');
+    </script>
+</body>
+</html>
