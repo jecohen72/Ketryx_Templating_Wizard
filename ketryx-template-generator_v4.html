@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ketryx Template Generator</title>
+    <!-- Include docx library from CDN -->
+    <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            overflow: hidden;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .question-container {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .question {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .option-btn:hover {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%);
+            transform: translateX(5px);
+        }
+
+        .option-btn.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .input-group input,
+        .input-group select,
+        .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn.back {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .nav-btn.back:hover {
+            background: #e0e0e0;
+        }
+
+        .nav-btn.next {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex-grow: 1;
+        }
+
+        .nav-btn.next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .summary {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .summary h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .summary-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40,167,69,0.4);
+        }
+
+        .chip-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .chip {
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #666;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chip.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .success-icon::after {
+            content: '✔';
+            color: white;
+            font-size: 40px;
+        }
+
+        .template-preview {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .template-preview pre {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .action-btn.secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .info-box {
+            background: #e8f4fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+
+        .info-box.warning {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+
+        .info-box strong {
+            color: #1976D2;
+        }
+
+        .info-box.warning strong {
+            color: #856404;
+        }
+
+        .info-box ol {
+            margin: 10px 0 0 20px;
+            color: #555;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Ketryx Template Generator</h1>
+            <p>Create professional templates in minutes - no coding required</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+        </div>
+        
+        <div class="content" id="content">
+            <!-- Dynamic content will be inserted here -->
+        </div>
+    </div>
+
+    <script>
+        // Template Generator State Management
+        const templateGenerator = {
+            currentStep: 0,
+            answers: {},
+            currentTemplate: '',
+            
+            // Question flow definition
+            questionFlow: [
+                {
+                    id: 'documentType',
+                    question: 'What type of document are you creating?',
+                    type: 'choice',
+                    options: [
+                        { value: 'requirements', label: 'Requirements Document', icon: '📋' },
+                        { value: 'testcases', label: 'Test Cases Report', icon: '🧪' },
+                        { value: 'traceability', label: 'Traceability Matrix', icon: '🔗' },
+                        { value: 'riskanalysis', label: 'Risk Analysis', icon: '⚠️' },
+                        { value: 'custom', label: 'Custom Document', icon: '✨' }
+                    ]
+                },
+                {
+                    id: 'dataSource',
+                    question: 'What Ketryx data do you want to include?',
+                    type: 'multiselect',
+                    condition: () => true,
+                    options: [
+                        { value: 'requirements', label: 'Requirements' },
+                        { value: 'tests', label: 'Test Cases' },
+                        { value: 'risks', label: 'Risk Items' },
+                        { value: 'changes', label: 'Change Requests' },
+                        { value: 'anomalies', label: 'Anomalies' }
+                    ]
+                },
+                {
+                    id: 'requirementFields',
+                    question: 'Which requirement fields should appear in your document?',
+                    type: 'multiselect',
+                    condition: (answers) => answers.dataSource && answers.dataSource.includes('requirements'),
+                    options: [
+                        { value: 'id', label: 'Requirement ID' },
+                        { value: 'title', label: 'Title' },
+                        { value: 'description', label: 'Description' },
+                        { value: 'type', label: 'Requirement Type' },
+                        { value: 'status', label: 'Status' },
+                        { value: 'priority', label: 'Priority' },
+                        { value: 'parents', label: 'Parent Requirements' },
+                        { value: 'children', label: 'Child Requirements' },
+                        { value: 'introducedInVersion', label: 'Introduced in Version' },
+                        { value: 'riskControl', label: 'Risk Control For' }
+                    ]
+                },
+                {
+                    id: 'requirementTypes',
+                    question: 'Which requirement types do you want to include?',
+                    type: 'multiselect',
+                    condition: (answers) => answers.dataSource && answers.dataSource.includes('requirements'),
+                    options: [
+                        { value: 'intended_use', label: 'Intended Use' },
+                        { value: 'user_marketing', label: 'User/Marketing' },
+                        { value: 'use_case', label: 'Use Case' },
+                        { value: 'functional', label: 'Functional' },
+                        { value: 'performance', label: 'Performance' },
+                        { value: 'usability', label: 'Usability' },
+                        { value: 'other', label: 'Other' }
+                    ]
+                },
+                {
+                    id: 'filtering',
+                    question: 'Do you want to filter the data?',
+                    type: 'choice',
+                    options: [
+                        { value: 'yes', label: 'Yes, I want to apply filters' },
+                        { value: 'no', label: 'No, include all data' }
+                    ]
+                },
+                {
+                    id: 'filterType',
+                    question: 'What would you like to filter by?',
+                    type: 'multiselect',
+                    condition: (answers) => answers.filtering === 'yes',
+                    options: [
+                        { value: 'status', label: 'Status (Draft, Approved, etc.)' },
+                        { value: 'type', label: 'Type (Functional, Performance, etc.)' },
+                        { value: 'priority', label: 'Priority Level' },
+                        { value: 'dateRange', label: 'Date Range' },
+                        { value: 'custom', label: 'Custom Field' }
+                    ]
+                },
+                {
+                    id: 'statusFilter',
+                    question: 'Select the statuses to include:',
+                    type: 'multiselect',
+                    condition: (answers) => answers.filterType && answers.filterType.includes('status'),
+                    options: [
+                        { value: 'draft', label: 'Draft' },
+                        { value: 'review', label: 'In Review' },
+                        { value: 'approved', label: 'Approved' },
+                        { value: 'released', label: 'Released' },
+                        { value: 'obsolete', label: 'Obsolete' }
+                    ]
+                },
+                {
+                    id: 'outputFormat',
+                    question: 'How should the data be displayed?',
+                    type: 'choice',
+                    options: [
+                        { value: 'table', label: 'Table Format' },
+                        { value: 'sections', label: 'Grouped Sections' },
+                        { value: 'list', label: 'Bulleted List' },
+                        { value: 'mixed', label: 'Mixed Format (Tables + Text)' }
+                    ]
+                },
+                {
+                    id: 'grouping',
+                    question: 'Should items be grouped?',
+                    type: 'choice',
+                    condition: (answers) => answers.outputFormat === 'sections' || answers.outputFormat === 'mixed',
+                    options: [
+                        { value: 'type', label: 'Group by Type' },
+                        { value: 'status', label: 'Group by Status' },
+                        { value: 'priority', label: 'Group by Priority' },
+                        { value: 'none', label: 'No Grouping' }
+                    ]
+                },
+                {
+                    id: 'includeRelations',
+                    question: 'Include related items?',
+                    type: 'choice',
+                    options: [
+                        { value: 'yes', label: 'Yes, show relationships' },
+                        { value: 'no', label: 'No, just the main items' }
+                    ]
+                },
+                {
+                    id: 'documentTitle',
+                    question: 'What should be the title of your document?',
+                    type: 'text',
+                    placeholder: 'e.g., Software Requirements Specification'
+                }
+            ],
+            
+            init() {
+                this.loadQuestion();
+            },
+            
+            loadQuestion() {
+                const question = this.getCurrentQuestion();
+                if (!question) {
+                    this.showSummary();
+                    return;
+                }
+                
+                const content = document.getElementById('content');
+                content.innerHTML = '';
+                
+                const container = document.createElement('div');
+                container.className = 'question-container';
+                
+                const questionEl = document.createElement('h2');
+                questionEl.className = 'question';
+                questionEl.textContent = question.question;
+                container.appendChild(questionEl);
+                
+                if (question.type === 'choice') {
+                    const options = document.createElement('div');
+                    options.className = 'options';
+                    
+                    question.options.forEach(option => {
+                        const btn = document.createElement('button');
+                        btn.className = 'option-btn';
+                        btn.innerHTML = `${option.icon ? option.icon + ' ' : ''}${option.label}`;
+                        btn.onclick = () => this.selectOption(question.id, option.value);
+                        
+                        if (this.answers[question.id] === option.value) {
+                            btn.classList.add('selected');
+                        }
+                        
+                        options.appendChild(btn);
+                    });
+                    
+                    container.appendChild(options);
+                    
+                } else if (question.type === 'multiselect') {
+                    const chipContainer = document.createElement('div');
+                    chipContainer.className = 'chip-container';
+                    
+                    question.options.forEach(option => {
+                        const chip = document.createElement('div');
+                        chip.className = 'chip';
+                        chip.textContent = option.label;
+                        
+                        const currentAnswers = this.answers[question.id] || [];
+                        if (currentAnswers.includes(option.value)) {
+                            chip.classList.add('selected');
+                        }
+                        
+                        chip.onclick = () => this.toggleMultiSelect(question.id, option.value);
+                        chipContainer.appendChild(chip);
+                    });
+                    
+                    container.appendChild(chipContainer);
+                    
+                } else if (question.type === 'text') {
+                    const inputGroup = document.createElement('div');
+                    inputGroup.className = 'input-group';
+                    
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.placeholder = question.placeholder || '';
+                    input.value = this.answers[question.id] || '';
+                    input.oninput = (e) => this.answers[question.id] = e.target.value;
+                    
+                    inputGroup.appendChild(input);
+                    container.appendChild(inputGroup);
+                }
+                
+                const navigation = document.createElement('div');
+                navigation.className = 'navigation';
+                
+                if (this.currentStep > 0) {
+                    const backBtn = document.createElement('button');
+                    backBtn.className = 'nav-btn back';
+                    backBtn.textContent = '← Back';
+                    backBtn.onclick = () => this.previousQuestion();
+                    navigation.appendChild(backBtn);
+                }
+                
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'nav-btn next';
+                nextBtn.textContent = this.currentStep === this.getValidQuestions().length - 1 ? 'Review Template →' : 'Next →';
+                nextBtn.onclick = () => this.nextQuestion();
+                
+                if (question.type !== 'text' && !this.answers[question.id]) {
+                    nextBtn.disabled = true;
+                }
+                
+                navigation.appendChild(nextBtn);
+                container.appendChild(navigation);
+                
+                content.appendChild(container);
+                this.updateProgress();
+            },
+            
+            getCurrentQuestion() {
+                const validQuestions = this.getValidQuestions();
+                return validQuestions[this.currentStep];
+            },
+            
+            getValidQuestions() {
+                return this.questionFlow.filter(q => {
+                    if (!q.condition) return true;
+                    return q.condition(this.answers);
+                });
+            },
+            
+            selectOption(questionId, value) {
+                this.answers[questionId] = value;
+                const btns = document.querySelectorAll('.option-btn');
+                btns.forEach(btn => btn.classList.remove('selected'));
+                event.target.classList.add('selected');
+                
+                const nextBtn = document.querySelector('.nav-btn.next');
+                if (nextBtn) nextBtn.disabled = false;
+            },
+            
+            toggleMultiSelect(questionId, value) {
+                if (!this.answers[questionId]) {
+                    this.answers[questionId] = [];
+                }
+                
+                const index = this.answers[questionId].indexOf(value);
+                if (index > -1) {
+                    this.answers[questionId].splice(index, 1);
+                } else {
+                    this.answers[questionId].push(value);
+                }
+                
+                event.target.classList.toggle('selected');
+                
+                const nextBtn = document.querySelector('.nav-btn.next');
+                if (nextBtn) {
+                    nextBtn.disabled = this.answers[questionId].length === 0;
+                }
+            },
+            
+            nextQuestion() {
+                const validQuestions = this.getValidQuestions();
+                if (this.currentStep < validQuestions.length - 1) {
+                    this.currentStep++;
+                    this.loadQuestion();
+                } else {
+                    this.showSummary();
+                }
+            },
+            
+            previousQuestion() {
+                if (this.currentStep > 0) {
+                    this.currentStep--;
+                    this.loadQuestion();
+                }
+            },
+            
+            updateProgress() {
+                const validQuestions = this.getValidQuestions();
+                const progress = ((this.currentStep + 1) / validQuestions.length) * 100;
+                document.getElementById('progressBar').style.width = progress + '%';
+            },
+            
+            showSummary() {
+                const content = document.getElementById('content');
+                content.innerHTML = `
+                    <div class="summary">
+                        <h3>Template Summary</h3>
+                        ${this.generateSummaryHTML()}
+                    </div>
+                    <button class="download-btn" onclick="templateGenerator.generateTemplate()">
+                        📄 Generate Word Document (.docx)
+                    </button>
+                    <p style="text-align: center; margin-top: 15px; color: #666; font-size: 14px;">
+                        A properly formatted Word document will be generated with your Ketryx template
+                    </p>
+                    <div class="navigation">
+                        <button class="nav-btn back" onclick="templateGenerator.editAnswers()">
+                            ← Edit Answers
+                        </button>
+                    </div>
+                `;
+                
+                document.getElementById('progressBar').style.width = '100%';
+            },
+            
+            generateSummaryHTML() {
+                const summaryItems = [];
+                
+                if (this.answers.documentType) {
+                    const docType = this.questionFlow[0].options.find(o => o.value === this.answers.documentType);
+                    summaryItems.push(`
+                        <div class="summary-item">
+                            <span class="summary-label">Document Type</span>
+                            <span class="summary-value">${docType.label}</span>
+                        </div>
+                    `);
+                }
+                
+                if (this.answers.dataSource) {
+                    summaryItems.push(`
+                        <div class="summary-item">
+                            <span class="summary-label">Data Sources</span>
+                            <span class="summary-value">${this.answers.dataSource.join(', ')}</span>
+                        </div>
+                    `);
+                }
+                
+                if (this.answers.outputFormat) {
+                    summaryItems.push(`
+                        <div class="summary-item">
+                            <span class="summary-label">Output Format</span>
+                            <span class="summary-value">${this.answers.outputFormat}</span>
+                        </div>
+                    `);
+                }
+                
+                if (this.answers.documentTitle) {
+                    summaryItems.push(`
+                        <div class="summary-item">
+                            <span class="summary-label">Document Title</span>
+                            <span class="summary-value">${this.answers.documentTitle}</span>
+                        </div>
+                    `);
+                }
+                
+                return summaryItems.join('');
+            },
+            
+            editAnswers() {
+                this.currentStep = 0;
+                this.loadQuestion();
+            },
+            
+            async generateTemplate() {
+                // Show loading state
+                const content = document.getElementById('content');
+                content.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Generating your Word document...</p>
+                    </div>
+                `;
+                
+                // Generate the template content
+                setTimeout(async () => {
+                    const templateContent = this.buildTemplateContent();
+                    this.currentTemplate = templateContent;
+                    
+                    // Create and download Word document using docx library
+                    await this.createProperWordDocument();
+                    
+                    // Show success message
+                    content.innerHTML = `
+                        <div class="success-message">
+                            <div class="success-icon"></div>
+                            <h2>Word Document Generated Successfully!</h2>
+                            <p>Your Ketryx template has been downloaded as a .docx file</p>
+                        </div>
+                        
+                        <div class="template-preview">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <strong style="color: #333;">Template Preview:</strong>
+                            </div>
+                            <pre id="templatePreview">${this.escapeHtml(templateContent)}</pre>
+                        </div>
+                        
+                        <div class="info-box">
+                            <strong>✅ Your template is ready to use!</strong>
+                            <ol>
+                                <li>The Word document has been downloaded to your computer</li>
+                                <li>Open the document to verify the template formatting</li>
+                                <li>Upload the document directly to Ketryx</li>
+                                <li>The template will process your data automatically</li>
+                            </ol>
+                        </div>
+                        
+                        <button class="nav-btn next" style="width: 100%; margin-top: 20px;" onclick="templateGenerator.reset()">
+                            ✨ Create Another Template
+                        </button>
+                    `;
+                }, 1500);
+            },
+            
+            async createProperWordDocument() {
+                const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, BorderStyle, AlignmentType, HeadingLevel } = docx;
+                
+                // Parse the template content to build the document structure
+                const lines = this.currentTemplate.split('\n');
+                const children = [];
+                const processedKQLs = new Set(); // Track processed KQL queries to avoid duplicates
+                
+                let inTable = false;
+                let tableRows = [];
+                let currentTableStructure = null;
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    
+                    // Skip empty lines unless we're in a table
+                    if (!line && !inTable) {
+                        children.push(new Paragraph({ text: '' }));
+                        continue;
+                    }
+                    
+                    // Handle headings
+                    if (line.startsWith('# ')) {
+                        children.push(new Paragraph({
+                            text: line.substring(2),
+                            heading: HeadingLevel.HEADING_1
+                        }));
+                    } else if (line.startsWith('## ')) {
+                        children.push(new Paragraph({
+                            text: line.substring(3),
+                            heading: HeadingLevel.HEADING_2
+                        }));
+                    } else if (line.startsWith('### ')) {
+                        children.push(new Paragraph({
+                            text: line.substring(4),
+                            heading: HeadingLevel.HEADING_3
+                        }));
+                    }
+                    // Handle table detection
+                    else if (line.startsWith('+') && line.includes('-')) {
+                        // This is a table separator
+                        if (!inTable) {
+                            inTable = true;
+                            currentTableStructure = this.parseTableStructure(lines, i);
+                            i = currentTableStructure.endIndex; // Skip to end of table
+                            
+                            // Create the table
+                            const table = this.createDocxTable(currentTableStructure);
+                            children.push(table);
+                            
+                            inTable = false;
+                            currentTableStructure = null;
+                        }
+                    }
+                    // Handle KQL queries - avoid duplicates
+                    else if (line.startsWith('{$KQL')) {
+                        // Check if we've already processed this exact KQL query
+                        if (!processedKQLs.has(line)) {
+                            processedKQLs.add(line);
+                            children.push(new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: line,
+                                        font: "Courier New"
+                                    })
+                                ]
+                            }));
+                        }
+                    }
+                    // Handle other template syntax
+                    else if (line.startsWith('{#') || line.startsWith('{/')) {
+                        children.push(new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: line,
+                                    font: "Courier New"
+                                })
+                            ]
+                        }));
+                    }
+                    // Handle regular text
+                    else if (line) {
+                        children.push(new Paragraph({
+                            text: line
+                        }));
+                    }
+                }
+                
+                // Create the document
+                const doc = new Document({
+                    sections: [{
+                        properties: {},
+                        children: children
+                    }]
+                });
+                
+                // Generate the DOCX file
+                const blob = await Packer.toBlob(doc);
+                
+                // Download the file
+                const title = this.answers.documentTitle || 'ketryx-template';
+                const filename = title.replace(/[^a-z0-9\s-]/gi, '').replace(/\s+/g, '_').toLowerCase();
+                saveAs(blob, `${filename}.docx`);
+            },
+            
+            parseTableStructure(lines, startIndex) {
+                const structure = {
+                    headers: [],
+                    rows: [],
+                    startIndex: startIndex,
+                    endIndex: startIndex
+                };
+                
+                // Find the table boundaries
+                for (let i = startIndex; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    
+                    if (line.startsWith('|') && !line.startsWith('+')) {
+                        // This is a table row
+                        const cells = line.split('|').filter(cell => cell.trim());
+                        
+                        // Check if this is a header row (comes right after separator)
+                        if (i > startIndex && lines[i-1].trim().startsWith('+')) {
+                            structure.headers = cells.map(cell => cell.trim());
+                        } else {
+                            structure.rows.push(cells.map(cell => cell.trim()));
+                        }
+                    } else if (line.startsWith('+') && i > startIndex) {
+                        // End of table section
+                        if (!lines[i+1] || !lines[i+1].trim().startsWith('|')) {
+                            structure.endIndex = i;
+                            break;
+                        }
+                    }
+                }
+                
+                return structure;
+            },
+            
+            createDocxTable(structure) {
+                const { Table, TableRow, TableCell, Paragraph, TextRun, WidthType, BorderStyle, AlignmentType } = docx;
+                
+                const tableRows = [];
+                
+                // Add header row if exists
+                if (structure.headers.length > 0) {
+                    const headerCells = structure.headers.map(header => 
+                        new TableCell({
+                            children: [new Paragraph({
+                                children: [new TextRun({ text: header, bold: true })],
+                                alignment: AlignmentType.CENTER
+                            })],
+                            width: { size: Math.floor(100 / structure.headers.length), type: WidthType.PERCENTAGE }
+                        })
+                    );
+                    
+                    tableRows.push(new TableRow({ children: headerCells }));
+                }
+                
+                // Add data rows
+                structure.rows.forEach(row => {
+                    const cells = row.map(cell => 
+                        new TableCell({
+                            children: [new Paragraph({ text: cell })],
+                            width: { size: Math.floor(100 / row.length), type: WidthType.PERCENTAGE }
+                        })
+                    );
+                    
+                    tableRows.push(new TableRow({ children: cells }));
+                });
+                
+                // If no rows were added, create a template row
+                if (tableRows.length === 1 && structure.headers.length > 0) {
+                    // This is a template table, add the template syntax as a single row
+                    const templateRow = structure.headers.map(() => 
+                        new TableCell({
+                            children: [new Paragraph({
+                                children: [new TextRun({ 
+                                    text: '{template syntax}',
+                                    font: "Courier New"
+                                })]
+                            })],
+                            width: { size: Math.floor(100 / structure.headers.length), type: WidthType.PERCENTAGE }
+                        })
+                    );
+                    
+                    tableRows.push(new TableRow({ children: templateRow }));
+                }
+                
+                return new Table({
+                    rows: tableRows,
+                    width: { size: 100, type: WidthType.PERCENTAGE }
+                });
+            },
+            
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            },
+            
+            buildTemplateContent() {
+                let template = '';
+                
+                // Add document title
+                template += `# ${this.answers.documentTitle || 'Requirements'}\n\n`;
+                
+                // Build sections based on selections
+                if (this.answers.documentType === 'requirements' && this.answers.requirementTypes) {
+                    // Build requirement sections for each selected type
+                    template += this.buildRequirementsByType();
+                } else if (this.answers.dataSource) {
+                    // Build general sections based on data sources
+                    if (this.answers.dataSource.includes('requirements')) {
+                        template += this.buildRequirementsSection();
+                    }
+                    
+                    if (this.answers.dataSource.includes('tests')) {
+                        template += this.buildTestCasesSection();
+                    }
+                    
+                    if (this.answers.dataSource.includes('risks')) {
+                        template += this.buildRisksSection();
+                    }
+                }
+                
+                return template;
+            },
+            
+            buildRequirementsByType() {
+                let sections = '';
+                const types = this.answers.requirementTypes || [];
+                
+                // Map of requirement type values to their display names and KQL filters
+                const typeMapping = {
+                    'intended_use': { 
+                        title: 'Intended Use', 
+                        kql: 'type:RQ and "Requirement type":"Intended use"',
+                        variable: 'intendeduse'
+                    },
+                    'user_marketing': { 
+                        title: 'User/Marketing', 
+                        kql: 'type:RQ and "Requirement type":"User/marketing"',
+                        variable: 'usermarketing'
+                    },
+                    'use_case': { 
+                        title: 'Use Case', 
+                        kql: 'type:RQ and "Requirement type":"Use case"',
+                        variable: 'usecase'
+                    },
+                    'functional': { 
+                        title: 'Functional', 
+                        kql: 'type:RQ and "Requirement type":"Functional"',
+                        variable: 'functional'
+                    },
+                    'performance': { 
+                        title: 'Performance', 
+                        kql: 'type:RQ and "Requirement type":"Performance"',
+                        variable: 'performance'
+                    },
+                    'usability': { 
+                        title: 'Useability', 
+                        kql: 'type:RQ and "Requirement type":"Useability"',
+                        variable: 'useability'
+                    },
+                    'other': { 
+                        title: 'Other', 
+                        kql: 'RQ and not "Requirement type":("Intended use" , "User/marketing", "Use case", "Functional", "Performance", "Useability")',
+                        variable: 'other'
+                    }
+                };
+                
+                // Build sections for each selected type
+                types.forEach(type => {
+                    const typeInfo = typeMapping[type];
+                    if (typeInfo) {
+                        sections += `{$KQL ${typeInfo.variable} = (${typeInfo.kql})}\n\n`;
+                        sections += `## ${typeInfo.title}\n\n`;
+                        
+                        if (this.answers.outputFormat === 'table') {
+                            sections += this.buildRequirementsTableForType(typeInfo.variable);
+                        } else {
+                            sections += this.buildRequirementsSectionsForType(typeInfo.variable);
+                        }
+                        
+                        sections += '\n';
+                    }
+                });
+                
+                return sections;
+            },
+            
+            buildRequirementsTableForType(variableName) {
+                let table = '';
+                const fields = this.answers.requirementFields || ['id', 'title', 'introducedInVersion', 'description', 'parents', 'riskControl'];
+                
+                // Build the table structure matching the example document
+                const columnHeaders = {
+                    'id': 'Requirement ID',
+                    'title': 'Title',
+                    'introducedInVersion': 'Introduced in Version',
+                    'description': 'Description',
+                    'parents': 'Parents',
+                    'riskControl': 'Risk Control For'
+                };
+                
+                // Calculate column widths
+                const colWidth = 11; // Reduced width for more columns
+                const separator = '-'.repeat(colWidth);
+                const doubleSep = '='.repeat(colWidth);
+                
+                // Build table header
+                table += '+' + fields.map(() => separator).join('+') + '+\n';
+                table += '|';
+                fields.forEach(field => {
+                    const label = columnHeaders[field] || field;
+                    let displayLabel = label;
+                    if (label.length > colWidth - 2) {
+                        // Split long labels
+                        displayLabel = label.substring(0, colWidth - 2);
+                    }
+                    const padding = colWidth - displayLabel.length;
+                    const leftPad = Math.floor(padding / 2);
+                    const rightPad = Math.ceil(padding / 2);
+                    table += ' '.repeat(leftPad) + displayLabel + ' '.repeat(rightPad) + '|';
+                });
+                table += '\n';
+                table += '+' + fields.map(() => doubleSep).join('+') + '+\n';
+                
+                // Build the data row with template syntax
+                table += '|';
+                table += ` {#${variableName}}`;
+                
+                const fieldTemplates = {
+                    'id': '{docId}',
+                    'title': '{title}',
+                    'introducedInVersion': '{introducedInVersion}',
+                    'description': '{~~ fieldContent.Description}',
+                    'parents': '{#relations|where:\'name=="has parent"\'}\\n• {other.title} - {other.docId}{/}',
+                    'riskControl': '{#relations|where:\'name=="risk-controls"\'}\\n• {other.title} - {other.docId}{/}{/}'
+                };
+                
+                fields.forEach((field, index) => {
+                    if (index > 0) table += ' |';
+                    table += ` ${fieldTemplates[field] || '{' + field + '}'}`;
+                });
+                
+                table += '\n';
+                table += '+' + fields.map(() => separator).join('+') + '+\n';
+                
+                return table;
+            },
+            
+            buildRequirementsSectionsForType(variableName) {
+                let sections = '';
+                
+                sections += `{#${variableName}}\n`;
+                sections += '### {title}\n\n';
+                
+                if (this.answers.requirementFields) {
+                    if (this.answers.requirementFields.includes('description')) {
+                        sections += '**Description:** {~~ fieldContent.Description}\n\n';
+                    }
+                    if (this.answers.requirementFields.includes('type')) {
+                        sections += '**Type:** {fieldContent.Requirement_type}\n';
+                    }
+                    if (this.answers.requirementFields.includes('status')) {
+                        sections += '**Status:** {status}\n';
+                    }
+                    if (this.answers.requirementFields.includes('introducedInVersion')) {
+                        sections += '**Introduced in Version:** {introducedInVersion}\n';
+                    }
+                    if (this.answers.requirementFields.includes('parents')) {
+                        sections += '**Parents:** {#relations|where:\'name=="has parent"\'}\\n- {other.title}{/}\n';
+                    }
+                    if (this.answers.requirementFields.includes('riskControl')) {
+                        sections += '**Risk Control For:** {#relations|where:\'name=="risk-controls"\'}\\n- {other.title}{/}\n';
+                    }
+                }
+                
+                sections += '\n{/}\n';
+                
+                return sections;
+            },
+            
+            buildRequirementsSection() {
+                let section = '## Requirements\n\n';
+                
+                // Build KQL query
+                let kql = '{$KQL reqs = type:"Requirement"';
+                
+                // Add filters if specified
+                if (this.answers.statusFilter && this.answers.statusFilter.length > 0) {
+                    const statusFilters = this.answers.statusFilter.map(s => `status:"${s}"`).join(' OR ');
+                    kql += ` AND (${statusFilters})`;
+                }
+                
+                kql += '}\n\n';
+                section += kql;
+                
+                // Build output based on format selection
+                if (this.answers.outputFormat === 'table') {
+                    section += this.buildRequirementsTable();
+                } else if (this.answers.outputFormat === 'sections' || this.answers.outputFormat === 'mixed') {
+                    section += this.buildRequirementsSections();
+                } else {
+                    // Default list format
+                    section += '{#reqs}\n';
+                    section += '- **{title}** ({id})\n';
+                    section += '  {description}\n';
+                    section += '{/}\n\n';
+                }
+                
+                return section;
+            },
+            
+            buildRequirementsTable() {
+                let table = '';
+                const fields = this.answers.requirementFields || ['id', 'title', 'type'];
+                
+                // Calculate column widths
+                const colWidth = 18;
+                const separator = '-'.repeat(colWidth);
+                const doubleSep = '='.repeat(colWidth);
+                
+                // Build table header
+                table += '+' + fields.map(() => separator).join('+') + '+\n';
+                table += '|';
+                fields.forEach(field => {
+                    const label = this.getFieldLabel(field);
+                    const padding = colWidth - label.length - 2;
+                    const leftPad = Math.floor(padding / 2);
+                    const rightPad = Math.ceil(padding / 2);
+                    table += ' ' + ' '.repeat(leftPad) + label + ' '.repeat(rightPad) + ' |';
+                });
+                table += '\n';
+                table += '+' + fields.map(() => doubleSep).join('+') + '+\n';
+                
+                // Build table row template
+                table += '| {#reqs}';
+                fields.forEach((field, index) => {
+                    if (index > 0) table += ' |';
+                    table += ' {' + this.getFieldTemplate(field) + '}';
+                });
+                table += ' |{/}\n';
+                table += '+' + fields.map(() => separator).join('+') + '+\n\n';
+                
+                return table;
+            },
+            
+            buildRequirementsSections() {
+                let sections = '';
+                
+                if (this.answers.grouping && this.answers.grouping !== 'none') {
+                    // Grouped sections
+                    sections += `{#reqs | sort:'docId' | group:'${this.getGroupField(this.answers.grouping)}'}\n\n`;
+                    sections += '### {groupKey || "Unspecified"}\n\n';
+                    sections += '{#groupItems}\n';
+                    sections += '{~~ . | itemContent:"HEADINGS +1"}\n';
+                    sections += '{/}\n\n';
+                    sections += '{/}\n';
+                } else {
+                    // Simple sections
+                    sections += '{#reqs}\n';
+                    sections += '### {title}\n\n';
+                    if (this.answers.requirementFields && this.answers.requirementFields.includes('description')) {
+                        sections += '{description}\n\n';
+                    }
+                    if (this.answers.requirementFields && this.answers.requirementFields.includes('type')) {
+                        sections += '**Type:** {fieldContent.Requirement_type}\n';
+                    }
+                    if (this.answers.requirementFields && this.answers.requirementFields.includes('status')) {
+                        sections += '**Status:** {status}\n';
+                    }
+                    sections += '\n{/}\n';
+                }
+                
+                return sections + '\n';
+            },
+            
+            buildTestCasesSection() {
+                let section = '## Test Cases\n\n';
+                section += '{$KQL tests = type:"Test Case"}\n\n';
+                
+                section += '+----------------+------------------+----------------+\n';
+                section += '| Test Case ID   | Title            | Status         |\n';
+                section += '+================+==================+================+\n';
+                section += '| {#tests}{id}   | {title}          | {status}{/}    |\n';
+                section += '+----------------+------------------+----------------+\n\n';
+                
+                return section;
+            },
+            
+            buildRisksSection() {
+                let section = '## Risk Analysis\n\n';
+                section += '{$KQL risks = type:"Risk"}\n\n';
+                
+                section += '{#risks}\n';
+                section += '### Risk: {title}\n\n';
+                section += '**Severity:** {severity}\n';
+                section += '**Probability:** {probability}\n';
+                section += '**Mitigation:** {mitigation}\n\n';
+                section += '{/}\n\n';
+                
+                return section;
+            },
+            
+            getFieldLabel(field) {
+                const labels = {
+                    'id': 'ID',
+                    'title': 'Title',
+                    'description': 'Description',
+                    'type': 'Type',
+                    'status': 'Status',
+                    'priority': 'Priority',
+                    'parents': 'Parents',
+                    'children': 'Children',
+                    'introducedInVersion': 'Version',
+                    'riskControl': 'Risk Control'
+                };
+                return labels[field] || field;
+            },
+            
+            getFieldTemplate(field) {
+                const templates = {
+                    'id': 'id',
+                    'title': 'title',
+                    'description': 'description',
+                    'type': 'fieldContent.Requirement_type',
+                    'status': 'status',
+                    'priority': 'priority',
+                    'parents': '#relations|where:\'name=="has parent"\'}\\n- {other.title}\\n{/',
+                    'children': '#relations|where:\'name=="has child"\'}\\n- {other.title}\\n{/',
+                    'introducedInVersion': 'introducedInVersion',
+                    'riskControl': '#relations|where:\'name=="risk-controls"\'}\\n- {other.title}\\n{/'
+                };
+                return templates[field] || field;
+            },
+            
+            getGroupField(grouping) {
+                const fields = {
+                    'type': 'fieldValue.Requirement_type',
+                    'status': 'status',
+                    'priority': 'priority'
+                };
+                return fields[grouping] || 'type';
+            },
+            
+            reset() {
+                this.currentStep = 0;
+                this.answers = {};
+                this.currentTemplate = '';
+                this.loadQuestion();
+            }
+        };
+        
+        // Initialize the generator when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            templateGenerator.init();
+        });
+    </script>
+</body>
+</html>
