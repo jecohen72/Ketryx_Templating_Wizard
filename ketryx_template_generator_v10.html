@@ -69,7 +69,9 @@
         .success-icon::after { content: '✓'; color: white; font-size: 32px; font-weight: bold; }
         .success-message h2 { color: var(--ketryx-dark-teal); font-size: 24px; margin-bottom: 8px; }
         .success-message p { color: var(--ketryx-text-light); font-size: 16px; }
-        .template-preview { display: none; }
+        .template-preview { background: var(--ketryx-light-gray); border: 1px solid var(--ketryx-border); border-radius: 8px; padding: 20px; margin: 24px 0; }
+        .template-preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .template-preview pre { background: white; border: 1px solid var(--ketryx-border); border-radius: 4px; padding: 16px; overflow-x: auto; font-family: 'SF Mono', Monaco, 'Courier New', monospace; font-size: 13px; line-height: 1.5; max-height: 400px; overflow-y: auto; color: var(--ketryx-text); }
         .info-box { background: #f0f7ec; border-left: 4px solid var(--ketryx-green); padding: 16px 20px; border-radius: 4px; margin: 24px 0; }
         .info-box strong { color: var(--ketryx-dark-teal); display: block; margin-bottom: 12px; }
         .info-box ol { margin: 0 0 0 20px; color: var(--ketryx-text); line-height: 1.8; }
@@ -97,11 +99,11 @@
                 </div>
                 <div class="progress-step" data-step="2">
                     <div class="progress-dot">2</div>
-                    <span class="progress-label">Filtering</span>
+                    <span class="progress-label">Configuration</span>
                 </div>
                 <div class="progress-step" data-step="3">
                     <div class="progress-dot">3</div>
-                    <span class="progress-label">Configuration</span>
+                    <span class="progress-label">Filtering</span>
                 </div>
                 <div class="progress-step" data-step="4">
                     <div class="progress-dot">4</div>
@@ -118,7 +120,8 @@
             currentStep: 0,
             answers: {},
             currentTemplate: '',
-            tableSpecs: [],
+            // Structured table specs used when building the DOCX file
+            tableSpecs: [], // [{ id, headers: string[], row: string[] }]
 
             entityFields: {
                 requirements: {
@@ -242,95 +245,120 @@
                 }
             },
 
-            // UI flow in this order
+            // UI flow
             questionFlow: [
-                { id: 'dataSource', question: 'What Ketryx data do you want to include in your document?', type: 'multiselect', condition: () => true,
-                  options: [
-                    { value: 'requirements', label: 'Requirements' }, { value: 'tests', label: 'Test Cases' },
-                    { value: 'testExecutions', label: 'Test Executions' }, { value: 'risks', label: 'Risk Items' },
-                    { value: 'changes', label: 'Change Requests' }, { value: 'anomalies', label: 'Anomalies' },
-                    { value: 'specifications', label: 'Software Item Specifications' }, { value: 'capas', label: 'CAPAs' }
-                  ]
+                {
+                    id: 'dataSource',
+                    question: 'What Ketryx data do you want to include in your document?',
+                    type: 'multiselect',
+                    condition: () => true,
+                    options: [
+                        { value: 'requirements', label: 'Requirements' },
+                        { value: 'tests', label: 'Test Cases' },
+                        { value: 'testExecutions', label: 'Test Executions' },
+                        { value: 'risks', label: 'Risk Items' },
+                        { value: 'changes', label: 'Change Requests' },
+                        { value: 'anomalies', label: 'Anomalies' },
+                        { value: 'specifications', label: 'Software Item Specifications' },
+                        { value: 'capas', label: 'CAPAs' }
+                    ]
                 },
-                { id: 'requirementTypes', question: 'Which requirement types do you want to include?', type: 'multiselect',
-                  condition: (answers) => answers.dataSource && answers.dataSource.includes('requirements'),
-                  options: [
-                    { value: 'intended_use', label: 'Intended Use' }, { value: 'user_marketing', label: 'User/Marketing' },
-                    { value: 'use_case', label: 'Use Case' }, { value: 'functional', label: 'Functional' },
-                    { value: 'performance', label: 'Performance' }, { value: 'usability', label: 'Usability' },
-                    { value: 'other', label: 'Other' }
-                  ]
+                {
+                    id: 'requirementTypes',
+                    question: 'Which requirement types do you want to include?',
+                    type: 'multiselect',
+                    condition: (answers) => answers.dataSource && answers.dataSource.includes('requirements'),
+                    options: [
+                        { value: 'intended_use', label: 'Intended Use' },
+                        { value: 'user_marketing', label: 'User/Marketing' },
+                        { value: 'use_case', label: 'Use Case' },
+                        { value: 'functional', label: 'Functional' },
+                        { value: 'performance', label: 'Performance' },
+                        { value: 'usability', label: 'Usability' },
+                        { value: 'other', label: 'Other' }
+                    ]
                 },
-                { id: 'filtering', question: 'Do you want to filter the data?', type: 'choice',
-                  options: [
-                    { value: 'yes', label: 'Yes, I want to apply filters' },
-                    { value: 'no', label: 'No, include all data' }
-                  ]
+                {
+                    id: 'filtering',
+                    question: 'Do you want to filter the data?',
+                    type: 'choice',
+                    options: [
+                        { value: 'yes', label: 'Yes, I want to apply filters' },
+                        { value: 'no', label: 'No, include all data' }
+                    ]
                 },
-                { id: 'filterType', question: 'What would you like to filter by?', type: 'multiselect',
-                  condition: (answers) => answers.filtering === 'yes',
-                  options: [
-                    { value: 'status', label: 'Status (Draft, Approved, etc.)' },
-                    { value: 'type', label: 'Type' }, { value: 'priority', label: 'Priority Level' },
-                    { value: 'version', label: 'Specific Version' }, { value: 'dateRange', label: 'Date Range' }
-                  ]
+                {
+                    id: 'filterType',
+                    question: 'What would you like to filter by?',
+                    type: 'multiselect',
+                    condition: (answers) => answers.filtering === 'yes',
+                    options: [
+                        { value: 'status', label: 'Status (Draft, Approved, etc.)' },
+                        { value: 'type', label: 'Type' },
+                        { value: 'priority', label: 'Priority Level' },
+                        { value: 'version', label: 'Specific Version' },
+                        { value: 'dateRange', label: 'Date Range' }
+                    ]
                 },
-                { id: 'statusFilter', question: 'Select the statuses to include:', type: 'multiselect',
-                  condition: (answers) => answers.filterType && answers.filterType.includes('status'),
-                  options: [
-                    { value: 'draft', label: 'Draft' }, { value: 'review', label: 'In Review' },
-                    { value: 'approved', label: 'Approved' }, { value: 'released', label: 'Released' },
-                    { value: 'obsolete', label: 'Obsolete' }
-                  ]
+                {
+                    id: 'statusFilter',
+                    question: 'Select the statuses to include:',
+                    type: 'multiselect',
+                    condition: (answers) => answers.filterType && answers.filterType.includes('status'),
+                    options: [
+                        { value: 'draft', label: 'Draft' },
+                        { value: 'review', label: 'In Review' },
+                        { value: 'approved', label: 'Approved' },
+                        { value: 'released', label: 'Released' },
+                        { value: 'obsolete', label: 'Obsolete' }
+                    ]
                 },
-                { id: 'outputFormat', question: 'How should the data be displayed?', type: 'choice',
-                  options: [
-                    { value: 'table', label: 'Table Format' }, { value: 'sections', label: 'Grouped Sections' },
-                    { value: 'list', label: 'Bulleted List' }, { value: 'mixed', label: 'Mixed Format (Tables + Text)' }
-                  ]
+                {
+                    id: 'outputFormat',
+                    question: 'How should the data be displayed?',
+                    type: 'choice',
+                    options: [
+                        { value: 'table', label: 'Table Format' },
+                        { value: 'sections', label: 'Grouped Sections' },
+                        { value: 'list', label: 'Bulleted List' },
+                        { value: 'mixed', label: 'Mixed Format (Tables + Text)' }
+                    ]
                 },
-                { id: 'grouping', question: 'Should items be grouped?', type: 'choice',
-                  condition: (answers) => answers.outputFormat === 'sections' || answers.outputFormat === 'mixed',
-                  options: [
-                    { value: 'type', label: 'Group by Type' }, { value: 'status', label: 'Group by Status' },
-                    { value: 'priority', label: 'Group by Priority' }, { value: 'version', label: 'Group by Version' },
-                    { value: 'none', label: 'No Grouping' }
-                  ]
+                {
+                    id: 'grouping',
+                    question: 'Should items be grouped?',
+                    type: 'choice',
+                    condition: (answers) => answers.outputFormat === 'sections' || answers.outputFormat === 'mixed',
+                    options: [
+                        { value: 'type', label: 'Group by Type' },
+                        { value: 'status', label: 'Group by Status' },
+                        { value: 'priority', label: 'Group by Priority' },
+                        { value: 'version', label: 'Group by Version' },
+                        { value: 'none', label: 'No Grouping' }
+                    ]
                 },
-                { id: 'documentTitle', question: 'What should be the title of your document?', type: 'text',
-                  placeholder: 'e.g., Software Requirements Specification' }
+                {
+                    id: 'documentTitle',
+                    question: 'What should be the title of your document?',
+                    type: 'text',
+                    placeholder: 'e.g., Software Requirements Specification'
+                }
             ],
 
-            // Step mapping that matches chronological flow
-            // 1 Data Sources, 2 Filtering, 3 Configuration, 4 Review
+            // Map each question to a visual step.
+            // Step 1: Data Sources, Step 2: Configuration, Step 3: Filtering. Step 4 is Review.
             stepForQuestionId(id) {
-                if (id === 'dataSource' || id.endsWith('Fields') || id === 'requirementFields' || id === 'requirementTypes') return 1;
-                if (id === 'filtering' || id === 'filterType' || id === 'statusFilter' || id === 'dateRangeFilter') return 2;
-                if (id === 'outputFormat' || id === 'grouping' || id === 'documentTitle') return 3;
-                return 3;
+                if (id === 'dataSource' || id.endsWith('Fields') || id === 'requirementFields' || id === 'requirementTypes') return 1; // Data Sources
+                if (id === 'outputFormat' || id === 'grouping' || id === 'documentTitle') return 2; // Configuration
+                if (id === 'filtering' || id === 'filterType' || id === 'statusFilter' || id === 'dateRangeFilter') return 3; // Filtering
+                return 2;
             },
 
-            // Build start and end indices per step
-            getStepBounds(valid) {
-                const starts = { 1: -1, 2: -1, 3: -1 };
-                const ends = { 1: -1, 2: -1, 3: -1 };
-                for (let i = 0; i < valid.length; i++) {
-                    const s = this.stepForQuestionId(valid[i].id);
-                    if (s < 1 || s > 3) continue;
-                    if (starts[s] === -1) starts[s] = i;
-                    ends[s] = i;
-                }
-                return { starts, ends };
-            },
-
-            init() { this.loadQuestion(); this.updateProgressIndicator(); },
-
-            // Visible, step-weighted, eased progress
+            // Helper to compute weighted, eased progress across steps
             computeVisualProgressPercent(validQuestions) {
-                const { starts, ends } = this.getStepBounds(validQuestions);
+                // Count totals and answered per step
                 const totals = { 1: 0, 2: 0, 3: 0 };
                 const answered = { 1: 0, 2: 0, 3: 0 };
-
                 for (let i = 0; i < validQuestions.length; i++) {
                     const s = this.stepForQuestionId(validQuestions[i].id);
                     if (s < 1 || s > 3) continue;
@@ -338,65 +366,78 @@
                     if (i < this.currentStep) answered[s]++;
                 }
 
-                const activeSteps = [1,2,3].filter(s => totals[s] > 0);
+                // Active steps are those with at least one question
+                const activeSteps = [1, 2, 3].filter(s => totals[s] > 0);
                 if (activeSteps.length === 0) return 0;
-                const weight = 100 / activeSteps.length;
 
-                let pct = 0;
-                for (const s of [1,2,3]) {
-                    if (!totals[s]) continue;
-                    const raw = answered[s] / totals[s];
+                const weight = 100 / activeSteps.length;
+                let percent = 0;
+
+                for (const s of [1, 2, 3]) {
+                    if (totals[s] === 0) continue;
+
+                    let raw = answered[s] / totals[s]; // 0..1
+                    // Ease early progress for long steps so the bar is visible when N is large
+                    // More questions => stronger easing
                     let exp = 1.0;
-                    if (totals[s] >= 12) exp = 0.5;
-                    else if (totals[s] >= 8) exp = 0.6;
-                    else if (totals[s] >= 5) exp = 0.75;
-                    const eased = Math.pow(raw, exp);
-                    pct += eased * weight;
+                    if (totals[s] >= 10) exp = 0.55;
+                    else if (totals[s] >= 6) exp = 0.7;
+
+                    const eased = Math.pow(raw, exp); // still 0..1, but larger early if exp < 1
+                    percent += eased * weight;
                 }
 
-                // Stronger early floor once progress has started
-                if (this.currentStep > 0 && pct < 5) pct = 5;
-                if (pct > 99.5) pct = 99.5;
-                return pct;
+                // Avoid a barely visible line once progress has begun
+                if (percent > 0 && percent < 2.5) percent = 2.5;
+
+                // Cap before summary
+                if (percent > 99.5) percent = 99.5;
+
+                return percent;
             },
 
+            init() { this.loadQuestion(); this.updateProgressIndicator(); },
             updateProgressIndicator() {
-                const valid = this.getValidQuestions();
-                const total = valid.length;
+                const validQuestions = this.getValidQuestions();
+                const total = validQuestions.length;
 
-                // Determine active step
+                // Determine active step for dots
                 let activeStep = 4;
                 if (this.currentStep < total) {
-                    activeStep = this.stepForQuestionId(valid[this.currentStep].id);
+                    const currentQ = validQuestions[this.currentStep];
+                    activeStep = this.stepForQuestionId(currentQ.id);
                 }
 
-                // Fill
+                // Fill width: step-weighted with easing, then snap to 100% on summary
                 const progressEl = document.getElementById('progressFill');
-                if (this.currentStep >= total) progressEl.style.width = '100%';
-                else progressEl.style.width = this.computeVisualProgressPercent(valid).toFixed(2) + '%';
+                if (this.currentStep >= total) {
+                    progressEl.style.width = '100%';
+                } else {
+                    const pct = this.computeVisualProgressPercent(validQuestions);
+                    progressEl.style.width = pct.toFixed(2) + '%';
+                }
 
+                // Mark step states
                 const steps = document.querySelectorAll('.progress-step');
-                const { starts, ends } = this.getStepBounds(valid);
 
-                // Helper to find the first index of the next step
-                const nextStart = (s) => {
-                    for (let k = s + 1; k <= 3; k++) {
-                        if (starts[k] !== -1) return starts[k];
-                    }
-                    return Infinity;
-                };
+                // Compute last index for each step
+                const ends = { 1: -1, 2: -1, 3: -1 };
+                for (let i = 0; i < validQuestions.length; i++) {
+                    const s = this.stepForQuestionId(validQuestions[i].id);
+                    if (s >= 1 && s <= 3) ends[s] = i;
+                }
 
                 steps.forEach((stepEl, idx) => {
-                    const s = idx + 1; // 1..4
+                    const stepNum = idx + 1;
                     stepEl.classList.remove('active', 'completed');
 
-                    if (s === 4) {
+                    if (stepNum === 4) {
                         if (this.currentStep >= total) stepEl.classList.add('active', 'completed');
                         return;
                     }
 
-                    const hasQs = starts[s] !== -1;
-                    const ns = nextStart(s);
+                    const endIdx = ends[stepNum];
+                    const hasQs = endIdx !== -1;
 
                     if (this.currentStep >= total) {
                         stepEl.classList.add('completed');
@@ -404,29 +445,23 @@
                     }
 
                     if (!hasQs) {
-                        if (activeStep > s) stepEl.classList.add('completed');
-                        else if (activeStep === s) stepEl.classList.add('active');
+                        if (activeStep > stepNum) stepEl.classList.add('completed');
+                        else if (activeStep === stepNum) stepEl.classList.add('active');
                         return;
                     }
 
-                    // Mark completed as soon as the next step is reached
-                    if (this.currentStep >= ns) {
-                        stepEl.classList.add('completed');
-                    } else if (activeStep === s) {
-                        stepEl.classList.add('active');
-                    }
+                    if (this.currentStep > endIdx) stepEl.classList.add('completed');
+                    else if (activeStep === stepNum) stepEl.classList.add('active');
                 });
             },
 
             loadQuestion() {
                 const question = this.getCurrentQuestion();
                 if (!question) { this.showSummary(); return; }
-
                 const content = document.getElementById('content');
                 content.innerHTML = '';
                 const container = document.createElement('div');
                 container.className = 'question-container';
-
                 const questionEl = document.createElement('h2');
                 questionEl.className = 'question';
                 questionEl.textContent = question.question;
@@ -485,7 +520,6 @@
                 if (question.type !== 'text' && !this.answers[question.id]) nextBtn.disabled = true;
                 navigation.appendChild(nextBtn);
                 container.appendChild(navigation);
-
                 content.appendChild(container);
                 this.updateProgressIndicator();
             },
@@ -509,7 +543,6 @@
                     });
                     const dataSourceIndex = questions.findIndex(q => q.id === 'dataSource');
                     questions.splice(dataSourceIndex + 1, 0, ...dataSourceQuestions);
-
                     if (this.answers.dataSource.includes('requirements')) {
                         const reqFieldsQuestion = {
                             id: 'requirementFields',
@@ -521,6 +554,7 @@
                         questions.splice(dataSourceIndex + 1, 0, reqFieldsQuestion);
                     }
                 }
+                // Apply conditions
                 return questions.filter(q => !q.condition || q.condition(this.answers));
             },
 
@@ -656,6 +690,7 @@
                 return kql;
             },
 
+            // Registers a table spec and returns a placeholder marker to insert in the text preview
             registerTable(headers, rowCells) {
                 const id = this.tableSpecs.length;
                 this.tableSpecs.push({ id, headers: headers.slice(), row: rowCells.slice() });
@@ -665,7 +700,9 @@
             buildEntityTable(entityType) {
                 const fields = this.answers[`${entityType}Fields`] || this.getDefaultFields(entityType);
                 const variableName = entityType.toLowerCase();
+                // Headers use full labels without truncation
                 const headers = fields.map(f => this.getFieldLabel(entityType, f));
+                // Row templates
                 const rowCells = fields.map((field, index) => {
                     const tmpl = this.getFieldTemplate(entityType, field);
                     if (index === 0) return `{#${variableName}}${tmpl}`;
@@ -850,10 +887,20 @@
                     const line = lines[i].trim();
                     if (!line) { children.push(new Paragraph({ text: '' })); continue; }
 
-                    if (line.startsWith('# ')) { children.push(new Paragraph({ text: line.substring(2), heading: HeadingLevel.HEADING_1 })); continue; }
-                    if (line.startsWith('## ')) { children.push(new Paragraph({ text: line.substring(3), heading: HeadingLevel.HEADING_2 })); continue; }
-                    if (line.startsWith('### ')) { children.push(new Paragraph({ text: line.substring(4), heading: HeadingLevel.HEADING_3 })); continue; }
+                    if (line.startsWith('# ')) {
+                        children.push(new Paragraph({ text: line.substring(2), heading: HeadingLevel.HEADING_1 }));
+                        continue;
+                    }
+                    if (line.startsWith('## ')) {
+                        children.push(new Paragraph({ text: line.substring(3), heading: HeadingLevel.HEADING_2 }));
+                        continue;
+                    }
+                    if (line.startsWith('### ')) {
+                        children.push(new Paragraph({ text: line.substring(4), heading: HeadingLevel.HEADING_3 }));
+                        continue;
+                    }
 
+                    // Structured table placeholder
                     const tableMarker = line.match(/^\[\[KETRYX_TABLE:(\d+)\]\]$/);
                     if (tableMarker) {
                         const spec = this.tableSpecs[parseInt(tableMarker[1], 10)];
@@ -861,11 +908,16 @@
                         continue;
                     }
 
+                    // KQL lines appear exactly once
                     if (line.startsWith('{$KQL')) {
-                        if (!processedKQLs.has(line)) { processedKQLs.add(line); children.push(mono(line)); }
+                        if (!processedKQLs.has(line)) {
+                            processedKQLs.add(line);
+                            children.push(mono(line));
+                        }
                         continue;
                     }
 
+                    // Any other template or text
                     if (line.startsWith('{#') || line.startsWith('{/') || line.startsWith('{~~') || (line.includes('{') && line.includes('}'))) {
                         children.push(mono(line));
                     } else {
